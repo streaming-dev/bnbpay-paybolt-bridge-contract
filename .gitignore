@@ -1,0 +1,20 @@
+# Files
+env.json
+truffle-config.js
+migrations/2_deploy_contracts.js
+coverage.json
+yarn.lock
+
+# Folders
+node_modules/
+build/
+coverage/
+cache
+artifacts
+
+node_modules
+.env
+
+#Hardhat files
+cache
+artifacts
