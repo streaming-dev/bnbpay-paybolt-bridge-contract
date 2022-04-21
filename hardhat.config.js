@@ -6,7 +6,7 @@ require("hardhat-deploy-ethers");
 
 require("dotenv").config();
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
-
+const MORALIS_KEY = process.env.MORALIS_KEY;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
 task("accounts", "Prints the list of accounts", async () => {
@@ -63,7 +63,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: `https://speedy-nodes-nyc.moralis.io/ac0def1f91aaeebbc60f9a13/bsc/testnet/archive`,
+        url: `https://speedy-nodes-nyc.moralis.io/${MORALIS_KEY}/bsc/testnet/archive`,
         blockNumber: 14328500,
       },
       blockGasLimit: 12000000,
@@ -85,11 +85,11 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`],
     },
     bsc: {
-      url: `https://speedy-nodes-nyc.moralis.io/ac0def1f91aaeebbc60f9a13/bsc/mainnet`,
+      url: `https://speedy-nodes-nyc.moralis.io/${MORALIS_KEY}/bsc/mainnet`,
       accounts: [`0x${PRIVATE_KEY}`],
     },
     bsctest: {
-      url: `https://speedy-nodes-nyc.moralis.io/ac0def1f91aaeebbc60f9a13/bsc/testnet/archive`,
+      url: `https://speedy-nodes-nyc.moralis.io/${MORALIS_KEY}/bsc/testnet/archive`,
       accounts: [`0x${PRIVATE_KEY}`],
     },
     mumbai: {
@@ -98,7 +98,7 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: process.env.BSCSCAN_API_KEY,
+    apiKey: process.env.ETHERSCAN_API_KEY,
   },
   mocha: {
     timeout: 10000 * 1000,

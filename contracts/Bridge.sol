@@ -1,7 +1,6 @@
 pragma solidity 0.6.4;
 
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
-
 import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
 contract  Bridge is Context {
@@ -9,15 +8,13 @@ contract  Bridge is Context {
     mapping(uint256 => address) public tokenAddresses;
 
     address payable public owner;
-
-    uint256 public swapFee;
+    mapping(uint256 => uint256) public swapFees;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event SwapStarted(uint256 fromChainId, uint256 indexed toChainId, address  indexed fromAddress, uint256 indexed amount);
     event SwapFilled(uint256 fromChainId, uint256 indexed toChainId, address indexed fromAddress, uint256 indexed amount);
 
-    constructor(uint256 fee) public {
-        swapFee = fee;
+    constructor() public {
         owner = _msgSender();
     }
 
@@ -70,8 +67,8 @@ contract  Bridge is Context {
     /**
      * @dev Returns set minimum swap fee from BEP20 to ERC20
      */
-    function setSwapFee(uint256 fee) onlyOwner external {
-        swapFee = fee;
+    function setSwapFee(uint256 fee, uint256 chainId) onlyOwner external {
+        swapFees[chainId] = fee;
     }
 
 
@@ -89,7 +86,7 @@ contract  Bridge is Context {
      */
     function swap(uint256 fromChainId, uint256 toChainId, uint256 amount) payable external notContract returns (bool) {
         require(tokenAddresses[fromChainId] != address(0x0), "no depature token exist");
-        require(msg.value == swapFee, "swap fee not equal");
+        require(msg.value == swapFees[toChainId], "swap fee not equal");
 
         IERC20(tokenAddresses[fromChainId]).safeTransferFrom(msg.sender, address(this), amount);
         if (msg.value != 0) {
