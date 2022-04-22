@@ -67,7 +67,7 @@ contract  Bridge is Context {
     /**
      * @dev Returns set minimum swap fee from BEP20 to ERC20
      */
-    function setSwapFee(uint256 fee, uint256 chainId) onlyOwner external {
+    function setSwapFee(uint256 chainId, uint256 fee) onlyOwner external {
         swapFees[chainId] = fee;
     }
 
