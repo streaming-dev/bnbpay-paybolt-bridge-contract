@@ -50,6 +50,7 @@ contract  Bridge is Context {
     }
 
     function setMinAmount(uint256 _minAmount) external onlyOwner {
+        require(_minAmount > 0, "need more amount than zero");
     	minAmount = _minAmount;
     }
 
@@ -66,8 +67,9 @@ contract  Bridge is Context {
     /**
      * @dev Returns set minimum swap fee from BEP20 to ERC20
      */
-    function setSwapFee(uint256 chainId, uint256 fee) external onlyOwner {
-        swapFees[chainId] = fee;
+    function setSwapFee(uint256 _chainId, uint256 _fee) external onlyOwner {
+        require(_fee > 0, "need more amount than zero");
+        swapFees[_chainId] = _fee;
     }
 
     /**
@@ -85,7 +87,7 @@ contract  Bridge is Context {
     function swap(uint256 fromChainId, uint256 toChainId, uint256 amount) payable external notContract returns (bool) {
         require(tokenAddress != address(0x0), "no depature token exist");
         require(msg.value == swapFees[toChainId], "swap fee not equal");
-        require(amount >= minAmount, "need more amount then minimum amount");
+        require(amount >= minAmount, "need more amount than minimum amount");
 
         IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
         if (msg.value != 0) {

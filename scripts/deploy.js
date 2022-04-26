@@ -18,9 +18,9 @@ async function main() {
     "0xe580074A10360404AF3ABfe2d524D5806D993ea3",
     "1000000000000000000000",
     "1",
-    "100000000000000000",
+    "87500000000000000",
     "137",
-    "10000000000000000");
+    "15000000000000000");
   await bridge.deployed();
   console.log("Bridge deployed to:", bridge.address);
 }
