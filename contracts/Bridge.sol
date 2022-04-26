@@ -5,17 +5,22 @@ import "openzeppelin-solidity/contracts/GSN/Context.sol";
 
 contract  Bridge is Context {
     using SafeERC20 for IERC20;
-    mapping(uint256 => address) public tokenAddresses;
 
+    address public tokenAddress;
     address payable public owner;
     mapping(uint256 => uint256) public swapFees;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event SwapStarted(uint256 fromChainId, uint256 indexed toChainId, address  indexed fromAddress, uint256 indexed amount);
     event SwapFilled(uint256 fromChainId, uint256 indexed toChainId, address indexed fromAddress, uint256 indexed amount);
+    event TokenDeposited(uint256 indexed amount);
+    event TokenWithdrawn(address indexed toAddress, uint256 indexed amount);
 
-    constructor() public {
+    constructor(address _tokenAddress, uint256 _toChainId1, uint256 _toSwapFee1, uint256 _toChainId2, uint256 _toSwapFee2) public {
         owner = _msgSender();
+        tokenAddress = _tokenAddress;
+        swapFees[_toChainId1] = _toSwapFee1;
+        swapFees[_toChainId2] = _toSwapFee2;
     }
 
     /**
@@ -38,27 +43,15 @@ contract  Bridge is Context {
         return size > 0;
     }
     
-    function setToken(uint256 chainId, address tokenAddress) external onlyOwner {
-    	tokenAddresses[chainId] = tokenAddress;
-    }
-
-    /**
-    * @dev Leaves the contract without owner. It will not be possible to call
-    * `onlyOwner` functions anymore. Can only be called by the current owner.
-    *
-    * NOTE: Renouncing ownership will leave the contract without an owner,
-    * thereby removing any functionality that is only available to the owner.
-    */
-    function renounceOwnership() public onlyOwner {
-        emit OwnershipTransferred(owner, address(0));
-        owner = address(0);
+    function setToken(address _tokenAddress) external onlyOwner {
+    	tokenAddress = _tokenAddress;
     }
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnership(address payable newOwner) public onlyOwner {
+    function transferOwnership(address payable newOwner) external onlyOwner {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
@@ -67,17 +60,16 @@ contract  Bridge is Context {
     /**
      * @dev Returns set minimum swap fee from BEP20 to ERC20
      */
-    function setSwapFee(uint256 chainId, uint256 fee) onlyOwner external {
+    function setSwapFee(uint256 chainId, uint256 fee) external onlyOwner {
         swapFees[chainId] = fee;
     }
-
 
     /**
      * @dev fillSwap
      */
     function fillSwap(uint256 fromChainId, uint256 toChainId, address toAddress, uint256 amount) onlyOwner external returns (bool) {
-        require(tokenAddresses[toChainId] != address(0x0), "no dest token exist");
-        IERC20(tokenAddresses[toChainId]).transfer(toAddress, amount);
+        require(tokenAddress != address(0x0), "no dest token exist");
+        IERC20(tokenAddress).transfer(toAddress, amount);
         emit SwapFilled(fromChainId, toChainId, toAddress, amount);
         return true;
     }
@@ -85,14 +77,31 @@ contract  Bridge is Context {
      * @dev swap
      */
     function swap(uint256 fromChainId, uint256 toChainId, uint256 amount) payable external notContract returns (bool) {
-        require(tokenAddresses[fromChainId] != address(0x0), "no depature token exist");
+        require(tokenAddress != address(0x0), "no depature token exist");
         require(msg.value == swapFees[toChainId], "swap fee not equal");
 
-        IERC20(tokenAddresses[fromChainId]).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
         if (msg.value != 0) {
             owner.transfer(msg.value);
         }
         emit SwapStarted(fromChainId, toChainId, msg.sender, amount);
         return true;
+    }
+
+    /**
+     * @dev Deposite tokens for brige swap
+     */
+    function depositToken(uint256 _amount) external onlyOwner {
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+        emit TokenDeposited(_amount);
+    }
+
+    /**
+     * @dev Withdraw the deposited tokens in brige.
+     */
+    function withdrawToken() external onlyOwner {
+        uint256 totalAmount = IERC20(tokenAddress).balanceOf(address(this));
+        IERC20(tokenAddress).transfer(msg.sender, totalAmount);
+        emit TokenWithdrawn(msg.sender, totalAmount);
     }
 }

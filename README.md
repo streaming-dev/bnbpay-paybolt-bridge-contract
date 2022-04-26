@@ -13,3 +13,6 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+npx hardhat run ./scripts/deploy.js --network __networkName
+npx hardhat verify _Contractaddress --constructor-args arguments.js --network _networkName

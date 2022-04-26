@@ -14,7 +14,12 @@ async function main() {
   // await hre.run('compile');
 
   const Bridge = await hre.ethers.getContractFactory("Bridge");
-  const bridge = await Bridge.deploy();
+  const bridge = await Bridge.deploy(
+    "0xe580074A10360404AF3ABfe2d524D5806D993ea3",
+    "1",
+    "100000000000000000",
+    "137",
+    "10000000000000000");
   await bridge.deployed();
   console.log("Bridge deployed to:", bridge.address);
 }
