@@ -7,6 +7,7 @@ contract  Bridge is Context {
     using SafeERC20 for IERC20;
 
     address public tokenAddress;
+    uint256 public minAmount;
     address payable public owner;
     mapping(uint256 => uint256) public swapFees;
 
@@ -16,9 +17,10 @@ contract  Bridge is Context {
     event TokenDeposited(uint256 indexed amount);
     event TokenWithdrawn(address indexed toAddress, uint256 indexed amount);
 
-    constructor(address _tokenAddress, uint256 _toChainId1, uint256 _toSwapFee1, uint256 _toChainId2, uint256 _toSwapFee2) public {
+    constructor(address _tokenAddress, uint256 _minAmount, uint256 _toChainId1, uint256 _toSwapFee1, uint256 _toChainId2, uint256 _toSwapFee2) public {
         owner = _msgSender();
         tokenAddress = _tokenAddress;
+        minAmount = _minAmount;
         swapFees[_toChainId1] = _toSwapFee1;
         swapFees[_toChainId2] = _toSwapFee2;
     }
@@ -45,6 +47,10 @@ contract  Bridge is Context {
     
     function setToken(address _tokenAddress) external onlyOwner {
     	tokenAddress = _tokenAddress;
+    }
+
+    function setMinAmount(uint256 _minAmount) external onlyOwner {
+    	minAmount = _minAmount;
     }
 
     /**
@@ -79,6 +85,7 @@ contract  Bridge is Context {
     function swap(uint256 fromChainId, uint256 toChainId, uint256 amount) payable external notContract returns (bool) {
         require(tokenAddress != address(0x0), "no depature token exist");
         require(msg.value == swapFees[toChainId], "swap fee not equal");
+        require(amount >= minAmount, "need more amount then minimum amount");
 
         IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
         if (msg.value != 0) {
